@@ -1,0 +1,266 @@
+// ======================================
+// 台灣16張麻將
+// AI系統
+// ai.js
+// ======================================
+
+const MahjongAI = {
+
+    // ------------------
+    // 選擇要打出的牌
+    // ------------------
+
+    chooseDiscard(hand) {
+
+        if (!hand || hand.length === 0)
+            return 0;
+
+        const scores = [];
+
+        for (let i = 0; i < hand.length; i++) {
+
+            scores.push({
+                index: i,
+                tile: hand[i],
+                score: this.evaluateTile(
+                    hand[i],
+                    hand
+                )
+            });
+        }
+
+        // 分數最低的最先丟
+
+        scores.sort(
+            (a, b) => a.score - b.score
+        );
+
+        return scores[0].index;
+    },
+
+    // ------------------
+    // 評估牌價值
+    // ------------------
+
+    evaluateTile(tile, hand) {
+
+        let score = 0;
+
+        // 對子加分
+
+        const sameCount =
+            hand.filter(t => t === tile).length;
+
+        if (sameCount >= 2)
+            score += 50;
+
+        if (sameCount >= 3)
+            score += 80;
+
+        // 字牌
+
+        if (TileManager.isHonor(tile)) {
+
+            if (sameCount === 1)
+                score -= 40;
+
+            return score;
+        }
+
+        const suit =
+            TileManager.getTileSuit(tile);
+
+        const num =
+            TileManager.getTileNumber(tile);
+
+        // 鄰近牌
+
+        const left1 =
+            suit + (num - 1);
+
+        const left2 =
+            suit + (num - 2);
+
+        const right1 =
+            suit + (num + 1);
+
+        const right2 =
+            suit + (num + 2);
+
+        if (hand.includes(left1))
+            score += 20;
+
+        if (hand.includes(right1))
+            score += 20;
+
+        if (hand.includes(left2))
+            score += 10;
+
+        if (hand.includes(right2))
+            score += 10;
+
+        // 中張加分
+
+        if (num >= 3 && num <= 7)
+            score += 10;
+
+        // 邊張扣分
+
+        if (num === 1 || num === 9)
+            score -= 10;
+
+        return score;
+    },
+
+    // ------------------
+    // 是否能碰
+    // ------------------
+
+    canPon(hand, tile) {
+
+        const count =
+            hand.filter(
+                t => t === tile
+            ).length;
+
+        return count >= 2;
+    },
+
+    // ------------------
+    // 是否能槓
+    // ------------------
+
+    canKan(hand, tile) {
+
+        const count =
+            hand.filter(
+                t => t === tile
+            ).length;
+
+        return count >= 3;
+    },
+
+    // ------------------
+    // 是否能吃
+    // ------------------
+
+    canChi(hand, tile) {
+
+        if (
+            TileManager.isHonor(tile)
+        ) {
+            return false;
+        }
+
+        const suit =
+            TileManager.getTileSuit(tile);
+
+        const num =
+            TileManager.getTileNumber(tile);
+
+        const a = suit + (num - 2);
+        const b = suit + (num - 1);
+
+        const c = suit + (num + 1);
+        const d = suit + (num + 2);
+
+        if (
+            hand.includes(a) &&
+            hand.includes(b)
+        ) {
+            return true;
+        }
+
+        if (
+            hand.includes(b) &&
+            hand.includes(c)
+        ) {
+            return true;
+        }
+
+        if (
+            hand.includes(c) &&
+            hand.includes(d)
+        ) {
+            return true;
+        }
+
+        return false;
+    },
+
+    // ------------------
+    // 找出碰牌組
+    // ------------------
+
+    getPonTiles(hand, tile) {
+
+        const result = [];
+
+        for (let t of hand) {
+
+            if (t === tile)
+                result.push(t);
+
+            if (result.length === 2)
+                break;
+        }
+
+        return result;
+    },
+
+    // ------------------
+    // 找出槓牌組
+    // ------------------
+
+    getKanTiles(hand, tile) {
+
+        const result = [];
+
+        for (let t of hand) {
+
+            if (t === tile)
+                result.push(t);
+
+            if (result.length === 3)
+                break;
+        }
+
+        return result;
+    },
+
+    // ------------------
+    // AI是否宣告碰
+    // ------------------
+
+    shouldPon(hand, tile) {
+
+        return this.canPon(
+            hand,
+            tile
+        );
+    },
+
+    // ------------------
+    // AI是否宣告槓
+    // ------------------
+
+    shouldKan(hand, tile) {
+
+        return this.canKan(
+            hand,
+            tile
+        );
+    },
+
+    // ------------------
+    // AI是否宣告吃
+    // ------------------
+
+    shouldChi(hand, tile) {
+
+        return this.canChi(
+            hand,
+            tile
+        );
+    }
+};

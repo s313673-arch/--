@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>台灣16張麻將</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<div id="game-container">
+
+    <div id="top-player" class="ai-player">
+        <div class="player-name">
+            AI-北家
+        </div>
+
+        <div id="top-hand" class="ai-hand"></div>
+
+        <div id="top-melds" class="meld-area"></div>
+    </div>
+
+    <div id="left-player" class="ai-player">
+        <div class="player-name">
+            AI-西家
+        </div>
+
+        <div id="left-hand" class="ai-hand vertical"></div>
+
+        <div id="left-melds" class="meld-area"></div>
+    </div>
+
+    <div id="table-area">
+
+        <div id="wall-info">
+            剩餘牌數：
+            <span id="wall-count">144</span>
+        </div>
+
+        <div id="turn-indicator">
+            東家出牌中
+        </div>
+
+        <div id="discard-area"></div>
+
+        <div id="action-buttons">
+
+            <button id="draw-btn">
+                摸牌
+            </button>
+
+            <button id="chi-btn">
+                吃
+            </button>
+
+            <button id="pon-btn">
+                碰
+            </button>
+
+            <button id="kan-btn">
+                槓
+            </button>
+
+            <button id="hu-btn">
+                胡牌
+            </button>
+
+            <button id="pass-btn">
+                跳過
+            </button>
+
+        </div>
+
+    </div>
+
+    <div id="right-player" class="ai-player">
+
+        <div class="player-name">
+            AI-南家
+        </div>
+
+        <div id="right-hand" class="ai-hand vertical"></div>
+
+        <div id="right-melds" class="meld-area"></div>
+
+    </div>
+
+    <div id="bottom-player">
+
+        <div class="player-name">
+            玩家（東家）
+        </div>
+
+        <div id="player-melds" class="meld-area"></div>
+
+        <div id="player-hand"></div>
+
+    </div>
+
+</div>
+
+<div id="score-panel">
+
+    <h2>計分板</h2>
+
+    <div class="score-row">
+        玩家：
+        <span id="score-player">25000</span>
+    </div>
+
+    <div class="score-row">
+        AI-北：
+        <span id="score-top">25000</span>
+    </div>
+
+    <div class="score-row">
+        AI-南：
+        <span id="score-right">25000</span>
+    </div>
+
+    <div class="score-row">
+        AI-西：
+        <span id="score-left">25000</span>
+    </div>
+
+</div>
+
+<div id="message-box"></div>
+
+<script src="js/tiles.js"></script>
+<script src="js/rules.js"></script>
+<script src="js/scoring.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/game.js"></script>
+
+</body>
+</html>

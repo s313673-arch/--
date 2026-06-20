@@ -1,0 +1,398 @@
+// ======================================
+// 台灣16張麻將
+// game.js
+// ======================================
+
+let players = [];
+let currentPlayer = 0;
+let dealer = 0;
+let gameStarted = false;
+
+// --------------------
+// 玩家類別
+// --------------------
+
+class Player {
+
+    constructor(name, isAI = false) {
+
+        this.name = name;
+        this.isAI = isAI;
+
+        this.hand = [];
+        this.melds = [];
+        this.score = 25000;
+    }
+}
+
+// --------------------
+// 初始化遊戲
+// --------------------
+
+function initGame() {
+
+    players = [
+
+        new Player("玩家", false),
+        new Player("AI-南家", true),
+        new Player("AI-西家", true),
+        new Player("AI-北家", true)
+
+    ];
+
+    dealer = 0;
+    currentPlayer = dealer;
+
+    TileManager.createWall();
+    TileManager.shuffle();
+
+    dealTiles();
+
+    updateWallCount();
+
+    renderHands();
+
+    updateTurnText();
+
+    gameStarted = true;
+
+    showMessage("遊戲開始");
+}
+
+// --------------------
+// 發牌
+// --------------------
+
+function dealTiles() {
+
+    // 每家16張
+
+    for (let round = 0; round < 16; round++) {
+
+        for (let p = 0; p < 4; p++) {
+
+            const tile = TileManager.drawTile();
+
+            if (tile) {
+
+                players[p].hand.push(tile);
+            }
+        }
+    }
+
+    // 莊家補一張
+
+    players[dealer].hand.push(
+        TileManager.drawTile()
+    );
+
+    // 排序
+
+    players.forEach(player => {
+
+        player.hand =
+            TileManager.sortTiles(player.hand);
+    });
+}
+
+// --------------------
+// 更新剩餘牌數
+// --------------------
+
+function updateWallCount() {
+
+    const wallCount =
+        document.getElementById("wall-count");
+
+    if (wallCount) {
+
+        wallCount.textContent =
+            TileManager.getWallCount();
+    }
+}
+
+// --------------------
+// 更新回合顯示
+// --------------------
+
+function updateTurnText() {
+
+    const indicator =
+        document.getElementById("turn-indicator");
+
+    if (!indicator) return;
+
+    indicator.textContent =
+        `${players[currentPlayer].name} 出牌中`;
+}
+
+// --------------------
+// 顯示訊息
+// --------------------
+
+function showMessage(msg) {
+
+    const box =
+        document.getElementById("message-box");
+
+    if (!box) return;
+
+    box.textContent = msg;
+    box.style.display = "block";
+
+    setTimeout(() => {
+
+        box.style.display = "none";
+
+    }, 1500);
+}
+
+// --------------------
+// 玩家手牌渲染
+// --------------------
+
+function renderHands() {
+
+    renderPlayerHand();
+    renderAIHands();
+}
+
+// --------------------
+// 玩家牌
+// --------------------
+
+function renderPlayerHand() {
+
+    const area =
+        document.getElementById("player-hand");
+
+    if (!area) return;
+
+    area.innerHTML = "";
+
+    players[0].hand.forEach((tile, index) => {
+
+        const div =
+            document.createElement("div");
+
+        div.className = "player-tile";
+
+        div.textContent = tile;
+
+        div.onclick = () => {
+
+            if (currentPlayer !== 0)
+                return;
+
+            discardTile(index);
+        };
+
+        area.appendChild(div);
+    });
+}
+
+// --------------------
+// AI牌背
+// --------------------
+
+function renderAIHands() {
+
+    renderAIHand(
+        "right-hand",
+        players[1].hand.length
+    );
+
+    renderAIHand(
+        "left-hand",
+        players[2].hand.length
+    );
+
+    renderAIHand(
+        "top-hand",
+        players[3].hand.length
+    );
+}
+
+function renderAIHand(id, count) {
+
+    const area =
+        document.getElementById(id);
+
+    if (!area) return;
+
+    area.innerHTML = "";
+
+    for (let i = 0; i < count; i++) {
+
+        const tile =
+            document.createElement("div");
+
+        tile.className = "ai-tile";
+
+        area.appendChild(tile);
+    }
+}
+
+// --------------------
+// 出牌
+// --------------------
+
+function discardTile(index) {
+
+    const player =
+        players[currentPlayer];
+
+    const tile =
+        player.hand.splice(index, 1)[0];
+
+    addDiscard(tile);
+
+    player.hand =
+        TileManager.sortTiles(player.hand);
+
+    renderHands();
+
+    nextTurn();
+}
+
+// --------------------
+// 棄牌區
+// --------------------
+
+function addDiscard(tile) {
+
+    const area =
+        document.getElementById(
+            "discard-area"
+        );
+
+    if (!area) return;
+
+    const div =
+        document.createElement("div");
+
+    div.className = "tile";
+
+    div.textContent = tile;
+
+    area.appendChild(div);
+}
+
+// --------------------
+// 下一位
+// --------------------
+
+function nextTurn() {
+
+    currentPlayer++;
+
+    if (currentPlayer >= 4)
+        currentPlayer = 0;
+
+    updateTurnText();
+
+    setTimeout(() => {
+
+        drawPhase();
+
+    }, 500);
+}
+
+// --------------------
+// 摸牌階段
+// --------------------
+
+function drawPhase() {
+
+    if (
+        TileManager.getWallCount() <= 0
+    ) {
+
+        showMessage("流局");
+        return;
+    }
+
+    const player =
+        players[currentPlayer];
+
+    const tile =
+        TileManager.drawTile();
+
+    player.hand.push(tile);
+
+    player.hand =
+        TileManager.sortTiles(player.hand);
+
+    updateWallCount();
+
+    renderHands();
+
+    // AI自動出牌
+
+    if (player.isAI) {
+
+        setTimeout(() => {
+
+            aiDiscard();
+
+        }, 1000);
+    }
+}
+
+// --------------------
+// AI出牌
+// --------------------
+
+function aiDiscard() {
+
+    const player =
+        players[currentPlayer];
+
+    if (!player.isAI)
+        return;
+
+    const index =
+        Math.floor(
+            Math.random() *
+            player.hand.length
+        );
+
+    const tile =
+        player.hand.splice(index, 1)[0];
+
+    addDiscard(tile);
+
+    renderHands();
+
+    nextTurn();
+}
+
+// --------------------
+// 開始按鈕
+// --------------------
+
+window.addEventListener(
+    "load",
+    () => {
+
+        initGame();
+
+        const drawBtn =
+            document.getElementById(
+                "draw-btn"
+            );
+
+        if (drawBtn) {
+
+            drawBtn.onclick = () => {
+
+                if (
+                    currentPlayer === 0
+                ) {
+
+                    drawPhase();
+                }
+            };
+        }
+    }
+);
